@@ -817,7 +817,7 @@ impl Drop for Handshake {
 pub struct ExData<'a> {
     pub application_protos: &'a Vec<Vec<u8>>,
 
-    pub pkt_num_spaces: &'a mut [packet::PktNumSpace; packet::EPOCH_COUNT],
+    pub pkt_num_spaces: &'a mut packet::PktNumSpaceMap,
 
     pub session: &'a mut Option<Vec<u8>>,
 
@@ -865,13 +865,13 @@ extern fn set_read_secret(
 
     let space = match level {
         crypto::Level::Initial =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_INITIAL],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_INITIAL),
         crypto::Level::ZeroRTT =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_APPLICATION],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_APPLICATION),
         crypto::Level::Handshake =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_HANDSHAKE],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_HANDSHAKE),
         crypto::Level::OneRTT =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_APPLICATION],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_APPLICATION),
     };
 
     let aead = match get_cipher_from_ptr(cipher) {
@@ -916,13 +916,13 @@ extern fn set_write_secret(
 
     let space = match level {
         crypto::Level::Initial =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_INITIAL],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_INITIAL),
         crypto::Level::ZeroRTT =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_APPLICATION],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_APPLICATION),
         crypto::Level::Handshake =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_HANDSHAKE],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_HANDSHAKE),
         crypto::Level::OneRTT =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_APPLICATION],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_APPLICATION),
     };
 
     let aead = match get_cipher_from_ptr(cipher) {
@@ -968,12 +968,12 @@ extern fn add_handshake_data(
 
     let space = match level {
         crypto::Level::Initial =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_INITIAL],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_INITIAL),
         crypto::Level::ZeroRTT => unreachable!(),
         crypto::Level::Handshake =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_HANDSHAKE],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_HANDSHAKE),
         crypto::Level::OneRTT =>
-            &mut ex_data.pkt_num_spaces[packet::EPOCH_APPLICATION],
+            ex_data.pkt_num_spaces.crypto_mut(packet::EPOCH_APPLICATION),
     };
 
     if space.crypto_stream.send.write(buf, false).is_err() {

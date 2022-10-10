@@ -806,6 +806,43 @@ impl ConnectionIdentifiers {
     pub fn pop_retired_scid(&mut self) -> Option<ConnectionId<'static>> {
         self.retired_scids.pop_front()
     }
+
+    /// Returns the largest destination Connection ID sequence number seen.
+    #[inline]
+    pub fn largest_dcid_seq(&self) -> u64 {
+        self.largest_destination_seq
+    }
+
+    /// Translates the wire-format path identifier into internal PIDs.
+    ///
+    /// When processing acknowleged packets, we may need to find again the
+    /// internal path identifier from the wire one. Hence, the way the Path
+    /// Identifier Type should be handled differs. The caller should call this
+    /// method with `from_peer` unset to activate this behavior.
+    pub fn path_id_from_wire(
+        &self, wire_pid: (u64, Option<u64>), recv_pid: usize, from_peer: bool,
+    ) -> Result<usize> {
+        let wire_pid = if from_peer {
+            wire_pid
+        } else {
+            match wire_pid {
+                (0x00, x) => (0x01, x),
+                (0x01, x) => (0x00, x),
+                _ => wire_pid,
+            }
+        };
+        match wire_pid {
+            // In `path_id_to_wire`, we store in the `Option` part of the tuple
+            // the internal path ID.
+            (0x02, Some(pid)) => Ok(pid as usize),
+            (0x02, None) => Ok(recv_pid),
+            (0x00, Some(dcid_seq)) =>
+                self.get_dcid(dcid_seq)?.path_id.ok_or(Error::InvalidFrame),
+            (0x01, Some(scid_seq)) =>
+                self.get_scid(scid_seq)?.path_id.ok_or(Error::InvalidFrame),
+            _ => Err(Error::InvalidFrame),
+        }
+    }
 }
 
 #[cfg(test)]

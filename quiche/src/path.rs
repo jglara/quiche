@@ -594,6 +594,7 @@ impl Path {
             stream_retrans_bytes: self.stream_retrans_bytes,
             pmtu: self.recovery.max_datagram_size(),
             delivery_rate: self.recovery.delivery_rate(),
+            bytes_in_flight: self.recovery.bif(),
         }
     }
 }
@@ -1230,6 +1231,9 @@ pub struct PathStats {
     /// [`SendInfo.at`]: struct.SendInfo.html#structfield.at
     /// [Pacing]: index.html#pacing
     pub delivery_rate: u64,
+
+    /// The current BIF for the connection.
+    pub bytes_in_flight: usize,
 }
 
 impl std::fmt::Debug for PathStats {

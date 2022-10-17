@@ -715,6 +715,10 @@ impl Recovery {
         self.delivery_rate.sample_delivery_rate()
     }
 
+    pub fn bif(&self) -> usize {
+        self.bytes_in_flight
+    }
+
     pub fn max_datagram_size(&self) -> usize {
         self.max_datagram_size
     }

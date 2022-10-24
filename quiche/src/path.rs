@@ -587,6 +587,7 @@ impl Path {
             retrans: self.retrans_count,
             rtt: self.recovery.rtt(),
             rtt_update: self.recovery.rtt_update_count,
+            rttvar: self.recovery.rttvar(),
             cwnd: self.recovery.cwnd(),
             sent_bytes: self.sent_bytes,
             recv_bytes: self.recv_bytes,
@@ -1200,6 +1201,9 @@ pub struct PathStats {
 
     /// The estimated round-trip time of the connection.
     pub rtt: time::Duration,
+
+    /// The estimated round-trip variation time of the connection.
+    pub rttvar: time::Duration,
 
     /// The number of round-trip time updates over that path.
     pub rtt_update: usize,

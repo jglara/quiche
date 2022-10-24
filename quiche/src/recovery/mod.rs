@@ -707,6 +707,10 @@ impl Recovery {
         self.smoothed_rtt.unwrap_or(INITIAL_RTT)
     }
 
+    pub fn rttvar(&self) -> Duration {
+        self.rttvar
+    }
+
     pub fn pto(&self) -> Duration {
         self.rtt() + cmp::max(self.rttvar * 4, GRANULARITY)
     }

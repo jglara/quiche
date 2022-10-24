@@ -1217,13 +1217,13 @@ pub struct Connection {
     almost_full: bool,
 
     /// Number of stream data bytes that can be buffered.
-    tx_cap: usize,
+    pub tx_cap: usize,
 
     /// Total number of bytes sent to the peer.
-    tx_data: u64,
+    pub tx_data: u64,
 
     /// Peer's flow control limit for the connection.
-    max_tx_data: u64,
+    pub max_tx_data: u64,
 
     /// Last tx_data before running a full send() loop.
     last_tx_data: u64,
@@ -4807,6 +4807,24 @@ impl Connection {
         if let Some(stream) = self.streams.get(stream_id) {
             let cap = cmp::min(self.tx_cap, stream.send.cap()?);
             return Ok(cap);
+        };
+
+        Err(Error::InvalidStreamState(stream_id))
+    }
+
+    // Returns stream recv max data and offset
+    pub fn stream_recv_offset(&self, stream_id: u64) -> Result<(u64, u64)> {
+        if let Some(stream) = self.streams.get(stream_id) {
+            return Ok((stream.recv.max_off(), stream.recv.off_front()));
+        };
+
+        Err(Error::InvalidStreamState(stream_id))
+    }
+
+    // Returns stream send max data and offset
+    pub fn stream_send_offset(&self, stream_id: u64) -> Result<(u64, u64)> {
+        if let Some(stream) = self.streams.get(stream_id) {
+            return Ok((stream.send.max_off(), stream.send.off_back()));
         };
 
         Err(Error::InvalidStreamState(stream_id))
